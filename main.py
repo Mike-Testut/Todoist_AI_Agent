@@ -8,11 +8,14 @@ from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.tools import tool
 from langchain.agents import create_openai_tools_agent, AgentExecutor
+from todoist_api_python.api import TodoistAPI
 
 load_dotenv()
 
 todoist_api_key = os.getenv("TODOIST_API_KEY")
 gemini_api_key = os.getenv("GEMINI_API_KEY")
+
+todoist = TodoistAPI(todoist_api_key)
 
 llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash",
                              google_api_key=gemini_api_key,
@@ -21,9 +24,7 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash",
 @tool
 def add_task(task):
     """Add a new task to the user's task list. Use this when the user wants to add or create a new task."""
-    print("Adding task...")
-    print(f"Your task is {task}")
-    print("Task added!")
+    todoist.add_task(task)
 
 tools = [add_task]
 system_prompt = "You are a helpful assistant. You will help the user add tasks"

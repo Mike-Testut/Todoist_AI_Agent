@@ -22,18 +22,23 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash",
                              temperature = 0.3)
 
 @tool
-def add_task(task):
+def add_task(task, description=None):
     """Add a new task to the user's task list. Use this when the user wants to add or create a new task."""
-    todoist.add_task(task)
+    todoist.add_task(task, description=description)
 
 tools = [add_task]
 system_prompt = "You are a helpful assistant. You will help the user add tasks"
-user_input = "Add a new task to get milk"
-prompt = ChatPromptTemplate([("system",system_prompt),("user",user_input), MessagesPlaceholder("agent_scratchpad")])
+prompt = ChatPromptTemplate([("system", system_prompt),
+                             MessagesPlaceholder("history"),
+                             ("user", "{input}"),
+                             MessagesPlaceholder("agent_scratchpad")])
 
-# chain = prompt | llm | StrOutputParser()
 agent = create_openai_tools_agent(llm, tools, prompt)
-# response = chain.invoke({"input": user_input})
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
-response = agent_executor.invoke({"input": user_input})
-print(response)
+
+history = []
+while True:
+    user_input = input("You: ")
+    response = agent_executor.invoke({"input": user_input, "history": history})
+    history.append(HumanMessage(content=user_input))
+    history.append(AIMessage(content=response['output']))

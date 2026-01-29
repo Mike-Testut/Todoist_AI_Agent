@@ -26,8 +26,21 @@ def add_task(task, description=None):
     """Add a new task to the user's task list. Use this when the user wants to add or create a new task."""
     todoist.add_task(task, description=description)
 
-tools = [add_task]
-system_prompt = "You are a helpful assistant. You will help the user add tasks"
+
+@tool
+def show_tasks():
+    """Show all the user's tasks from Todoist. Use this tool when the user wants to see all their tasks."""
+    print("here are your tasks:")
+    results_paginator = todoist.get_tasks()
+    tasks = []
+    for task_list in results_paginator:
+        for task in task_list:
+            tasks.append(task.content)
+    return tasks
+
+tools = [add_task, show_tasks]
+system_prompt = ("You are a helpful assistant. You will help the user add and view tasks. When asked to show the "
+                 "tasks, please format them in a bullet list")
 prompt = ChatPromptTemplate([("system", system_prompt),
                              MessagesPlaceholder("history"),
                              ("user", "{input}"),
